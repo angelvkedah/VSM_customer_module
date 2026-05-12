@@ -20,13 +20,13 @@
 # 1. Клонирование репозитория
 
 ```bash
-git clone https://github.com/JustUty/VSM-Project.git
+git clone https://github.com/angelvkedah/VSM_customer_module.git
 ```
 
 # 2. Переход в директорию проекта
 
 ```bash
-cd VSM
+cd VSM_customer_module
 ```
 
 # 3. Создание виртуального окружения
@@ -117,7 +117,7 @@ pip install llama-cpp-python
 # Запуск приложения
 
 ```bash
-streamlit run app.py
+streamlit run main.py
 ```
 
 После запуска приложение будет доступно по адресу:
