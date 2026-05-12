@@ -47,8 +47,7 @@ LLM_LOADING_MESSAGES = [
 
 def _make_filter_key(sidebar_data):
     """
-    Формирует ключ текущих фильтров.
-    Если ключ изменился, данные нужно загрузить заново.
+    Формирует ключ текущих фильтров
     """
     return (
         sidebar_data.mode,
@@ -61,7 +60,7 @@ def _make_filter_key(sidebar_data):
 
 def _safe_file_part(value):
     """
-    Безопасная часть имени файла.
+    Безопасная часть имени файла
     """
     return (
         str(value)
@@ -84,7 +83,7 @@ def _format_timestamp_for_display(value):
 
 def _prepare_timeline_for_display(timeline_df, selected_columns):
     """
-    Подготавливает таблицу хронологии для отображения.
+    Подготавливает таблицу хронологии для отображения
     """
     column_names_map = get_column_names_map()
 
@@ -120,7 +119,7 @@ def _prepare_timeline_for_display(timeline_df, selected_columns):
 
 def _prepare_raw_events_for_display(events_df):
     """
-    Подготавливает сырые сообщения для отображения.
+    Подготавливает сырые сообщения для отображения
     """
     if events_df is None or events_df.empty:
         return pd.DataFrame()
@@ -169,7 +168,7 @@ def _prepare_raw_events_for_display(events_df):
 
 def _render_aggrid(df, key, height=500, table_type="default"):
     """
-    Отображает DataFrame через AgGrid.
+    Отображает DataFrame через AgGrid
     """
     if df is None or df.empty:
         st.info("Нет данных для отображения.")
@@ -201,7 +200,7 @@ def _render_aggrid(df, key, height=500, table_type="default"):
 
 def _load_one_train(train_id, train_human_name, dt_from, dt_to):
     """
-    Загружает события одного поезда и строит хронологию.
+    Загружает события одного поезда и строит хронологию
     """
     events_df = load_events_data(
         train_id=train_id,
@@ -227,8 +226,8 @@ def _load_one_train(train_id, train_human_name, dt_from, dt_to):
 
 def _load_data_for_filters(sidebar_data):
     """
-    Загружает данные по текущим фильтрам.
-    Поддерживает режим одного и двух поездов.
+    Загружает данные по текущим фильтрам
+    Поддерживает режим одного и двух поездов
     """
     all_events = []
     all_timelines = []

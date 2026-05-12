@@ -3,7 +3,7 @@ import streamlit as st
 
 def show_help():
     """
-    Отображает справочную информацию
+    Справочная информация
     """
 
     st.info(

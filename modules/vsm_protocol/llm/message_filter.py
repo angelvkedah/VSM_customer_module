@@ -45,9 +45,7 @@ def load_priority_rules():
 
     df = pd.read_csv(PRIORITY_RULES_FILE, encoding="utf-8-sig")
 
-    # Поддерживаем оба варианта названия колонки:
-    # meldecode — из исходного справочника
-    # messagecode — из нового справочника приоритетов
+    
     if "meldecode" not in df.columns and "messagecode" in df.columns:
         df = df.rename(columns={"messagecode": "meldecode"})
 

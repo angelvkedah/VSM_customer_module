@@ -56,7 +56,7 @@ def main():
 
     text = response["choices"][0]["message"]["content"].strip()
 
-    # Если модель всё равно ушла в китайский, пробуем один короткий повтор
+    # Если модель ушла в китайский
     if has_chinese_chars(text):
         retry_prompt = (
             "Перепиши следующий текст полностью на русском языке. "

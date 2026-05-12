@@ -26,7 +26,7 @@ def _priority_rank(priority: str) -> int:
 
 def aggregate_events(timeline_df):
     """
-    Агрегирует значимые события.
+    Агрегирует значимые события
     """
 
     if timeline_df is None or timeline_df.empty:
@@ -105,7 +105,7 @@ def build_aggregated_events_text(
     max_groups=30
 ):
     """
-    Формирует текст событий для подачи в модель.
+    Формирует текст событий для подачи в модель
     """
 
     aggregated_df = aggregate_events(timeline_df)
@@ -161,7 +161,7 @@ def build_aggregated_events_text(
 
 def get_aggregation_stats(timeline_df):
     """
-    Возвращает статистику агрегации.
+    Возвращает статистику агрегации
     """
 
     aggregated_df = aggregate_events(timeline_df)

@@ -7,7 +7,7 @@ from pathlib import Path
 
 def generate_text(prompt: str) -> str:
     """
-    Генерирует текст через отдельный Python-процесс.
+    Генерирует текст через отдельный процесс
     """
 
     worker_path = Path(__file__).resolve().parent / "llm_worker.py"

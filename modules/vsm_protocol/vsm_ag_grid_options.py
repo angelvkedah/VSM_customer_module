@@ -8,7 +8,7 @@ def draw_vsm_table(
     table_type="default"
 ):
     """
-    Формирует настройки AgGrid для таблиц модуля АСФЭП-ДС ВПС.
+    Формирует настройки AgGrid для таблиц модуля 
     """
 
     gb = GridOptionsBuilder.from_dataframe(df)

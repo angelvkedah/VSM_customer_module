@@ -23,7 +23,6 @@ def get_message_text_for_row(row):
 
 def build_timeline(events_df):
     """
-    Строит линейную хронологию событий:
     активация и деактивация отображаются отдельными строками.
     """
     if events_df is None or events_df.empty:
