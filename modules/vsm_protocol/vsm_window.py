@@ -176,11 +176,11 @@ def _render_aggrid(df, key, height=500, table_type="default"):
 
     grid_options = draw_vsm_table(
         df,
-        page_size=25,
         selection_mode="disabled",
         table_type=table_type,
     )
 
+    # Очищаем старый контейнер, если ключ изменился
     grid_response = AgGrid(
         df,
         gridOptions=grid_options,
@@ -192,7 +192,7 @@ def _render_aggrid(df, key, height=500, table_type="default"):
         data_return_mode=DataReturnMode.AS_INPUT,
         allow_unsafe_jscode=True,
         theme="streamlit",
-        key=key,
+        key=key,  # Ключ теперь включает filter_key, что принудительно пересоздаёт компонент
     )
 
     return grid_response
@@ -319,44 +319,59 @@ def _render_statistics(events_df, timeline_df):
 
 def _render_column_selector():
     column_names_map = get_column_names_map()
+    column_options = list(column_names_map.keys())
 
-    if "vsm_selected_columns" not in st.session_state:
-        st.session_state["vsm_selected_columns"] = DEFAULT_COLUMNS
+    # Ключ для хранения выбранных колонок
+    selected_key = "vsm_selected_columns"
 
+    # Инициализация, если ещё нет
+    if selected_key not in st.session_state:
+        st.session_state[selected_key] = DEFAULT_COLUMNS.copy()
+
+    # Создаём уникальный ключ для multiselect, чтобы изолировать его состояние
+    multiselect_key = "vsm_column_multiselect"
+
+    # Отображаем мультиселект, привязанный к session_state
     selected_columns = st.multiselect(
         "Отображаемые колонки",
-        options=list(column_names_map.keys()),
+        options=column_options,
         format_func=lambda x: column_names_map.get(x, x),
-        default=st.session_state["vsm_selected_columns"],
-        key="vsm_selected_columns_widget",
+        default=st.session_state[selected_key],
+        key=multiselect_key,
     )
 
-    st.session_state["vsm_selected_columns"] = selected_columns
+    # Обновляем session_state при изменении
+    if selected_columns != st.session_state[selected_key]:
+        st.session_state[selected_key] = selected_columns
+        st.rerun()
 
     col1, col2 = st.columns(2)
 
     with col1:
         if st.button(
-            "Все колонки",
-            use_container_width=True,
-            key="vsm_select_all_columns",
+                "Все колонки",
+                use_container_width=True,
+                key="vsm_select_all_columns",
         ):
-            st.session_state["vsm_selected_columns"] = list(column_names_map.keys())
+            st.session_state[selected_key] = column_options.copy()
+            # Обновляем ключ multiselect, чтобы принудительно обновить его состояние
+            st.session_state[multiselect_key] = column_options.copy()
             st.rerun()
 
     with col2:
         if st.button(
-            "Сбросить колонки",
-            use_container_width=True,
-            key="vsm_reset_columns",
+                "Сбросить колонки",
+                use_container_width=True,
+                key="vsm_reset_columns",
         ):
-            st.session_state["vsm_selected_columns"] = DEFAULT_COLUMNS
+            st.session_state[selected_key] = DEFAULT_COLUMNS.copy()
+            st.session_state[multiselect_key] = DEFAULT_COLUMNS.copy()
             st.rerun()
 
-    return st.session_state["vsm_selected_columns"]
+    return st.session_state[selected_key]
 
 
-def _render_timeline_table(timeline_df):
+def _render_timeline_table(timeline_df, filter_key):
     with st.expander("Хронология эксплуатационных событий", expanded=True):
         selected_columns = _render_column_selector()
 
@@ -370,14 +385,15 @@ def _render_timeline_table(timeline_df):
         )
 
         st.caption(
-            "Таблица поддерживает сортировку, фильтрацию, поиск по колонкам и постраничный просмотр."
+            "Таблица поддерживает сортировку, фильтрацию, поиск по колонкам и вертикальную прокрутку."
         )
 
-        columns_key = "_".join(selected_columns)
+        # Используем filter_key в ключе таблицы, чтобы принудительно пересоздавать AgGrid
+        table_key = f"vsm_timeline_aggrid_{filter_key}_{'_'.join(selected_columns)}"
 
         _render_aggrid(
             display_timeline,
-            key=f"vsm_timeline_aggrid_{columns_key}",
+            key=table_key,
             height=560,
             table_type="timeline",
         )
@@ -400,12 +416,33 @@ def _render_raw_events_table(events_df):
 
 
 def _render_intelligent_protocol(
-    timeline_df,
-    train_name_str,
-    train_names_for_file,
-    sidebar_data,
+        timeline_df,
+        train_name_str,
+        train_names_for_file,
+        sidebar_data,
 ):
-    with st.expander("Интеллектуальное формирование протокола", expanded=False):
+    hybrid_state_key = "vsm_hybrid_protocol_text"
+    show_section_key = "vsm_show_intelligent_section"
+
+    # Инициализация
+    if hybrid_state_key not in st.session_state:
+        st.session_state[hybrid_state_key] = None
+    if show_section_key not in st.session_state:
+        st.session_state[show_section_key] = False
+
+    st.markdown("---")
+
+    # Кнопка для показа/скрытия секции
+    if st.button(
+            "Интеллектуальное формирование протокола",
+            use_container_width=True,
+            key="vsm_toggle_intelligent_section",
+    ):
+        st.session_state[show_section_key] = not st.session_state[show_section_key]
+        st.rerun()
+
+    # Если секция открыта - показываем содержимое
+    if st.session_state[show_section_key]:
         st.markdown(
             """
             Локальная языковая модель формирует развернутое интеллектуальное резюме
@@ -418,26 +455,8 @@ def _render_intelligent_protocol(
             """
         )
 
-        hybrid_state_key = "vsm_hybrid_protocol_text"
-
-        if st.button(
-            "Сформировать интеллектуальное резюме",
-            type="primary",
-            use_container_width=True,
-            key="vsm_generate_hybrid_protocol",
-        ):
-            loading_message = random.choice(LLM_LOADING_MESSAGES)
-
-            with st.spinner(loading_message):
-                st.session_state[hybrid_state_key] = build_hybrid_protocol_text(
-                    timeline_df=timeline_df,
-                    train_name=train_name_str,
-                    dt_from=sidebar_data.dt_from,
-                    dt_to=sidebar_data.dt_to,
-                    max_groups=25,
-                )
-
-        if hybrid_state_key in st.session_state:
+        # Если текст уже есть - показываем его
+        if st.session_state[hybrid_state_key] is not None:
             edited_hybrid_text = st.text_area(
                 "Текст интеллектуального резюме",
                 value=st.session_state[hybrid_state_key],
@@ -460,7 +479,24 @@ def _render_intelligent_protocol(
                     key="vsm_download_hybrid_docx",
                 )
         else:
-            st.info("Нажмите кнопку выше, чтобы сформировать интеллектуальный протокол.")
+            # Кнопка генерации
+            if st.button(
+                    "Сформировать интеллектуальное резюме",
+                    type="primary",
+                    use_container_width=True,
+                    key="vsm_generate_hybrid_protocol",
+            ):
+                loading_message = random.choice(LLM_LOADING_MESSAGES)
+                with st.spinner(loading_message):
+                    result = build_hybrid_protocol_text(
+                        timeline_df=timeline_df,
+                        train_name=train_name_str,
+                        dt_from=sidebar_data.dt_from,
+                        dt_to=sidebar_data.dt_to,
+                        max_groups=25,
+                    )
+                    st.session_state[hybrid_state_key] = result
+                    st.rerun()
 
 
 def _render_export_section(
@@ -581,7 +617,16 @@ def vsm_protocol_window(sidebar_data):
     )
 
     if need_reload:
-        with st.spinner("Загрузка и обработка диагностических сообщений..."):
+        # Показываем заглушку
+        with st.spinner("Загрузка данных для выбранных поездов..."):
+            # Принудительно удаляем старые данные из session_state
+            for key in ["vsm_events_df", "vsm_timeline_df", "vsm_hybrid_protocol_text"]:
+                if key in st.session_state:
+                    del st.session_state[key]
+
+            # Сбрасываем флаг показа интеллектуальной секции
+            st.session_state["vsm_show_intelligent_section"] = False
+
             try:
                 events_df, timeline_df = _load_data_for_filters(sidebar_data)
 
@@ -589,9 +634,8 @@ def vsm_protocol_window(sidebar_data):
                 st.session_state["vsm_timeline_df"] = timeline_df
                 st.session_state["vsm_current_filter_key"] = current_filter_key
 
-                # При новых фильтрах старый интеллектуальный протокол очищаем
-                st.session_state.pop("vsm_hybrid_protocol_text", None)
-                st.session_state.pop("vsm_edited_hybrid_protocol_text", None)
+                # Принудительный rerun после полной загрузки
+                st.rerun()
 
             except Exception as e:
                 st.error(f"Ошибка при загрузке данных: {e}")
@@ -618,8 +662,8 @@ def vsm_protocol_window(sidebar_data):
     )
 
     _render_statistics(events_df, timeline_df)
-    _render_timeline_table(timeline_df)
-    _render_raw_events_table(events_df)
+    filter_key = f"{sidebar_data.train_id}_{sidebar_data.train_id_2}_{sidebar_data.dt_from}_{sidebar_data.dt_to}"
+    _render_timeline_table(timeline_df, filter_key)
     _render_intelligent_protocol(
         timeline_df=timeline_df,
         train_name_str=train_name_str,

@@ -3,6 +3,8 @@ import streamlit as st
 from utils.UserClass import User
 from modules.vsm_protocol.vsm_sidebar import VSMProtocolSidebar
 from modules.vsm_protocol.vsm_window import vsm_protocol_window
+from modules.vsm_protocol.analytics.analytics_sidebar import AnalyticsSidebar
+from modules.vsm_protocol.analytics.analytics_window import analytics_window
 
 
 st.set_page_config(
@@ -17,7 +19,11 @@ BUILDER_MODULES = {
     "АСФЭП-ДС ВПС": {
         "sidebar": VSMProtocolSidebar,
         "window": vsm_protocol_window,
-    }
+    },
+    "Аналитика": {
+        "sidebar": AnalyticsSidebar,
+        "window": analytics_window,
+    },
 }
 
 

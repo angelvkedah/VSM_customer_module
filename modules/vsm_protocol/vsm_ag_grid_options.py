@@ -3,12 +3,11 @@ from st_aggrid import GridOptionsBuilder, JsCode
 
 def draw_vsm_table(
     df,
-    page_size=25,
     selection_mode="disabled",
     table_type="default"
 ):
     """
-    Формирует настройки AgGrid для таблиц модуля 
+    Формирует настройки AgGrid для таблиц модуля
     """
 
     gb = GridOptionsBuilder.from_dataframe(df)
@@ -111,11 +110,8 @@ def draw_vsm_table(
             autoHeight=True,
         )
 
-    gb.configure_pagination(
-        enabled=True,
-        paginationPageSize=page_size,
-        paginationAutoPageSize=False,
-    )
+    # Пагинация отключена
+    # gb.configure_pagination(...) - удалено
 
     if selection_mode != "disabled":
         gb.configure_selection(
